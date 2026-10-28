@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Giris yapan kullanici yalnizca KENDI belgesini (users/{uid}) okuyup yazabilir.
+    // Baska kullanicilarin belgelerini okumak/listelemek istemciden kapali; liste Firebase Console'dan gorulur.
+    match /users/{uid} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+      // Belgede yalnizca bu alanlar olabilir; tipleri ve e-posta dogrulanir
+      function validDoc() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['maps', 'updatedAt', 'email', 'displayName', 'photoURL', 'createdAt', 'lastLoginAt'])
+          && (!('maps' in d) || d.maps is map)
+          && (!('updatedAt' in d) || d.updatedAt is timestamp)
+          && (!('createdAt' in d) || d.createdAt is timestamp)
+          && (!('lastLoginAt' in d) || d.lastLoginAt is timestamp)
+          && (!('displayName' in d) || d.displayName == null || (d.displayName is string && d.displayName.size() <= 200))
+          && (!('photoURL' in d) || d.photoURL == null || (d.photoURL is string && d.photoURL.size() <= 2000))
+          // e-posta yalnizca girisli hesabin kendi e-postasi olabilir
+          && (!('email' in d) || d.email == request.auth.token.email);
+      }
+      // createdAt bir kez yazilir, sonra degistirilemez
+      function createdAtKept() {
+        return !('createdAt' in resource.data)
+          || (('createdAt' in request.resource.data) && request.resource.data.createdAt == resource.data.createdAt);
+      }
+
+      allow get: if isOwner();
+      // 'list' (koleksiyon sorgusu) hicbir kullaniciya acik degil
+      allow list: if false;
+      allow create: if isOwner() && validDoc();
+      allow update: if isOwner() && validDoc() && createdAtKept();
+      allow delete: if isOwner();
+    }
+  }
+}

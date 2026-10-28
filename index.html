@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="gece">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Harita Boyama – Avrupa</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f8cff'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%97%BA%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('harita-tema');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="stylesheet" href="./style.css?v=20261028b">
+</head>
+<body class="home">
+<div class="topbar">
+  <div class="top-left">
+    <button type="button" class="btn secondary back-btn" id="backBtn" hidden>← Geri</button>
+    <div class="top-title">
+      <h1 id="title">Bir ülke seç</h1>
+      <p id="subtitle">Avrupa haritasında boyamak istediğin ülkeye tıkla</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span id="syncStatus" class="sync-status" role="status" aria-live="polite"></span>
+    <button type="button" class="btn" id="loginBtn">Google ile giriş yap</button>
+    <span id="authUser" class="auth-user" hidden>
+      <button type="button" id="authBtn" class="avatar-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="authMenu" aria-label="Hesap menüsü">
+        <img id="authImg" alt="" width="32" height="32" hidden>
+      </button>
+      <div id="authMenu" class="auth-menu" role="menu" aria-label="Hesap" hidden>
+        <div class="am-head">
+          <img id="authImgBig" alt="" width="56" height="56" hidden>
+          <b id="authName"></b>
+          <span id="authEmail"></span>
+        </div>
+        <hr>
+        <button type="button" class="am-item" id="logoutBtn" role="menuitem"><span aria-hidden="true">⎋</span> Çıkış yap</button>
+        <hr>
+        <button type="button" class="am-item danger" id="deleteAccountBtn" role="menuitem" hidden><span aria-hidden="true">🗑</span> Hesabımı ve verilerimi sil</button>
+      </div>
+    </span>
+  </div>
+</div>
+
+<main class="page">
+  <div class="layout">
+  <aside class="side-panel" id="sidePanel" aria-label="Boyama araçları" data-sheet="peek" hidden>
+    <button type="button" class="sheet-handle" id="sheetHandle" aria-label="Boyama panelini aç / kapat" aria-expanded="false" aria-controls="sidePanel"><i aria-hidden="true"></i></button>
+    <div class="side-sec">
+      <h2>Renk Seç</h2>
+      <div class="swatches" id="swatches" role="group" aria-label="Renk paleti"></div>
+      <label class="swatch custom-swatch" title="Kendi rengini seç">
+        <span aria-hidden="true">+</span>
+        <input type="color" id="colorPicker" value="#4d8dff" aria-label="Özel renk seç">
+      </label>
+    </div>
+    <div class="side-sec">
+      <h2>Seçili Şehir</h2>
+      <div class="selected-name" id="selectedName">-</div>
+    </div>
+    <div class="side-sec side-btns">
+      <button type="button" class="pbtn" id="labelsBtn" aria-pressed="true">Şehir İsimlerini Gizle</button>
+      <button type="button" class="pbtn primary" id="eraseBtn" disabled>Seçili Şehri Sil</button>
+      <button type="button" class="pbtn" id="resetBtn">Haritayı Sıfırla</button>
+      <button type="button" class="pbtn" id="randomBtn">Rastgele Boya</button>
+    </div>
+    <div class="side-sec">
+      <h2>Tema</h2>
+      <div class="themes" id="themes" role="group" aria-label="Tema"></div>
+    </div>
+    <div class="side-sec">
+      <h2>Dışa Aktar</h2>
+      <button type="button" class="pbtn" id="pngBtn2">Haritayı İndir (PNG)</button>
+    </div>
+    <div class="side-sec">
+      <h2>İstatistik</h2>
+      <div class="stat"><span>Boyanan bölge</span><b id="statPainted">0</b></div>
+      <div class="stat"><span>Toplam bölge</span><b id="statTotal">0</b></div>
+    </div>
+  </aside>
+
+  <div class="map-panel" id="mapPanel">
+    <div class="card-bar">
+      <div class="progress" aria-live="polite">
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar"><i id="barFill"></i></div>
+        <span class="sum-main" id="sumMain"></span>
+        <span class="sum-sub" id="sumSub"></span>
+      </div>
+      <div class="card-actions">
+        <button type="button" class="btn pill" id="bordersBtn" aria-pressed="true">Şehir sınırlarını gizle</button>
+        <button type="button" class="btn pill" id="flagsBtn" aria-pressed="false">Bayrakları göster</button>
+        <button type="button" class="sq" id="zoomIn" aria-label="Yakınlaştır" title="Yakınlaştır">+</button>
+        <button type="button" class="sq" id="zoomOut" aria-label="Uzaklaştır" title="Uzaklaştır">−</button>
+        <button type="button" class="sq" id="zoomReset" aria-label="Görünümü sıfırla" title="Görünümü sıfırla">⟲</button>
+        <button type="button" class="sq wide" id="pngBtn" title="Haritayı PNG olarak indir">⬇ PNG</button>
+        <button type="button" class="sq" id="viewPngBtn" title="Bu görünümü PNG olarak kaydet" aria-label="Bu görünümü PNG olarak kaydet" hidden>📷</button>
+      </div>
+    </div>
+<div class="map-wrap">
+    <div class="sel-bubble" id="selBubble" hidden></div>
+        <svg id="euroMap" viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Harita"></svg>
+    </div>
+  </div>
+  </div>
+</main>
+
+<div id="tooltip" role="tooltip"></div>
+<div id="toast" role="alert" aria-live="assertive" hidden></div>
+<noscript><p style="padding:16px">Bu site JavaScript gerektirir.</p></noscript>
+
+<script src="./vendor/d3.min.js"></script>
+<script src="./vendor/topojson-client.min.js"></script>
+<script src="./firebase-config.js"></script>
+<script src="./vendor/firebase/firebase-app-compat.js"></script>
+<script src="./vendor/firebase/firebase-auth-compat.js"></script>
+<script src="./vendor/firebase/firebase-firestore-compat.js"></script>
+<script src="./data/countries.js"></script>
+<script src="./data/europe.js"></script>
+<script src="./data/europe-regions.js"></script>
+<script src="./data/merge-map.js"></script>
+<script src="./cloud.js?v=20261028b"></script>
+<script src="./europe.js?v=20261028b"></script>
+<script src="./export.js?v=20261028b"></script>
+</body>
+</html>

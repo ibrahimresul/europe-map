@@ -1,0 +1,2 @@
+Yazı tipleri @fontsource paketlerinden (SIL Open Font License 1.1): Inter, Playfair Display, Caveat, Anton.
+Lisans metni: https://openfontlicense.org

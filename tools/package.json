@@ -1,0 +1,14 @@
+{
+  "name": "harita-veri-araclari",
+  "private": true,
+  "type": "module",
+  "description": "Natural Earth verisinden TopoJSON üretir (npm run build-data)",
+  "scripts": {
+    "build-data": "node build-data.mjs"
+  },
+  "devDependencies": {
+    "d3": "7.9.0",
+    "mapshaper": "^0.6.121",
+    "topojson-client": "3.1.0"
+  }
+}
