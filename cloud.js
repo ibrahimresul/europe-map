@@ -37,6 +37,8 @@
     if (c === 'auth/network-request-failed' || !navigator.onLine) return 'İnternet bağlantısı yok. Bağlantını kontrol edip tekrar dene.';
     if (c === 'auth/unauthorized-domain') return 'Bu site adresi Firebase’de yetkili değil. Firebase konsolunda Authentication > Ayarlar > Yetkili alan adları listesine ekle.';
     if (c === 'auth/popup-blocked') return 'Tarayıcı giriş penceresini engelledi. Açılır pencerelere izin verip tekrar dene.';
+    if (c === 'auth/web-storage-unsupported') return 'Tarayıcın çerez/site verisi depolamayı engelliyor. Gizli sekmeyi kapat veya "Siteler arası takibi engelle" ayarını kapatıp tekrar dene.';
+    if (c === 'auth/login-incomplete') return 'Giriş tamamlanamadı, lütfen tekrar dene.';
     if (c === 'auth/too-many-requests') return 'Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.';
     if (c === 'auth/user-disabled') return 'Bu hesap devre dışı bırakılmış.';
     if (c === 'auth/requires-recent-login') return 'Güvenlik nedeniyle silmeden önce yeniden giriş yapman gerekiyor. Çıkış yapıp tekrar giriş yaptıktan sonra dene.';
@@ -59,6 +61,13 @@
   if (!loginBtn) return;
 
   let fb = null, auth = null, db = null, user = null;
+  const loginLabel = loginBtn.textContent;
+  function setLoginBusy(on) {   // bekleme gostergesi: yonlendirme donusu / oturum geri yuklenirken
+    loginBtn.disabled = !!on;
+    loginBtn.textContent = on ? 'Giriş yapılıyor…' : loginLabel;
+  }
+  // Instagram/Facebook/WhatsApp vb. uygulama ici tarayicilar Google girisini engeller
+  const inAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|Snapchat|TikTok|musical_ly|Twitter|LinkedInApp|MicroMessenger|; wv\)/i.test(navigator.userAgent || '');
   let sdkPromise = null;
   const pending = new Set();
   let timer = null;
@@ -184,15 +193,39 @@
       document.head.appendChild(s);
     });
   }
+  // Firebase'i baslat. SDK index.html'de onceden yuklendigi icin burasi senkron calisir:
+  // giris butonuna basinca signInWithPopup kullanici hareketi icinde (await olmadan) cagrilabilsin.
+  function initAuth() {
+    if (auth) return true;
+    if (!window.firebase) return false;
+    fb = window.firebase;
+    if (!fb.apps.length) fb.initializeApp(cfg);
+    auth = fb.auth();
+    db = fb.firestore();
+    // compat auth zaten [indexedDB, local, session] sirasini ve popup/redirect cozucusunu kullanir;
+    // yine de acikca kalicilik iste, olmazsa session -> bellek (none) sirasina dus.
+    const P = fb.auth.Auth.Persistence;
+    (async () => {
+      for (const p of [P.LOCAL, P.SESSION, P.NONE]) {
+        try { await auth.setPersistence(p); return; } catch (e) { console.warn('Kalıcılık ayarlanamadı:', p, e); }
+      }
+    })();
+    auth.onAuthStateChanged(onUser);
+    // Yonlendirmeyle girisin sonucu: hata varsa kullaniciya goster
+    auth.getRedirectResult().catch((e) => {
+      console.error('getRedirectResult hatası:', e);
+      setLoginBusy(false);
+      notify(e && e.code ? hataMesaji(e) : 'Giriş tamamlanamadı, lütfen tekrar dene.');
+    });
+    return true;
+  }
   function ensureSdk() {
     if (!sdkPromise) {
       sdkPromise = (async () => {
-        if (!window.firebase) for (const src of SDK) await loadScript(src);
-        fb = window.firebase;
-        if (!fb.apps.length) fb.initializeApp(cfg);
-        auth = fb.auth();
-        db = fb.firestore();
-        auth.onAuthStateChanged(onUser);
+        if (!initAuth()) {
+          for (const src of SDK) await loadScript(src);
+          initAuth();
+        }
       })().catch((e) => { sdkPromise = null; throw e; });
     }
     return sdkPromise;
@@ -314,6 +347,7 @@
 
   async function onUser(u) {
     user = u || null;
+    setLoginBusy(false);
     try { sessionStorage.removeItem('harita-giris'); } catch (e) { /* yoksay */ }
     render();
     if (!user) return;
@@ -332,28 +366,30 @@
       notify('Google girişi henüz ayarlanmamış. Site şimdilik misafir modunda, boyamaların bu cihazda saklanıyor.');
       return;
     }
+    if (inAppBrowser) { notify('Google girişi bu uygulama içi tarayıcıda çalışmaz. Giriş için bu bağlantıyı Safari veya Chrome’da aç.'); return; }
     if (!navigator.onLine) { notify(hataMesaji({ code: 'auth/network-request-failed' })); return; }
-    loginBtn.disabled = true;
+    setLoginBusy(true);
     try {
-      await ensureSdk();
+      // SDK onceden hazirsa signInWithPopup dogrudan dokunus olayi icinde cagrilir (Safari popup engeli icin sart)
+      if (!initAuth()) await ensureSdk();
       const provider = new fb.auth.GoogleAuthProvider();
       try {
         await auth.signInWithPopup(provider);
       } catch (e) {
-        if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+        const c = e && e.code;
+        if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment' || c === 'auth/web-storage-unsupported') {
           try { sessionStorage.setItem('harita-giris', '1'); } catch (x) { /* yoksay */ }
-          await auth.signInWithRedirect(provider);
-        } else {
-          throw e;
+          await auth.signInWithRedirect(provider);   // sayfa terk edilir; sonuc getRedirectResult'ta
+          return;
         }
+        throw e;
       }
     } catch (e) {
       console.error(e);
       setStatus('');
-      notify(sdkPromise ? hataMesaji(e) : 'Giriş servisi yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.');
-    } finally {
-      loginBtn.disabled = false;
+      notify(auth ? hataMesaji(e) : 'Giriş servisi yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.');
     }
+    setLoginBusy(false);
   });
 
   const settle = (p) => Promise.race([p, new Promise((r) => setTimeout(r, 4000))]);
@@ -456,7 +492,11 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(); });
   window.addEventListener('pagehide', () => { if (pending.size) flush(); });
 
-  // Daha once giris yapilmissa (veya yonlendirmeyle giris donusuyse) SDK'yi hemen yukle: oturum geri gelir
+  // Sayfa acilirken Firebase'i hemen baslat: yonlendirme donusu/kayitli oturum geri yuklenir.
+  // Oturum bekleniyorsa (onceki giris veya yonlendirme donusu) giris dugmesinde bekleme gostergesi gorunur.
   const redirecting = () => { try { return sessionStorage.getItem('harita-giris') === '1'; } catch (e) { return false; } };
-  if (configured && (lsGet(UID_KEY) || redirecting())) ensureSdk().catch((e) => console.error(e));
+  if (configured) {
+    if (lsGet(UID_KEY) || redirecting()) setLoginBusy(true);
+    ensureSdk().catch((e) => { console.error(e); setLoginBusy(false); });
+  }
 })();
