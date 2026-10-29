@@ -546,8 +546,8 @@
       const soft = !!img && st.cityBorders && painted.has(sl) && !!data.detail[sl];   // boyasız bölgeler soluk bayrak, boyalılar tam bayrak
       ctx.globalAlpha = fade(f);
       if (img) {
-        const gs = groupsOf(shape, pp), th = A.flagAngle(f, proj);
-        if (soft) { flagInfo[sl] = { img, gs, th }; ctx.beginPath(); path(shape); ctx.fillStyle = th.land; ctx.fill(); }
+        const gs = groupsOf(shape, pp), ang = A.flagAngle(f, proj);
+        if (soft) { flagInfo[sl] = { img, gs, th: ang }; ctx.beginPath(); path(shape); ctx.fillStyle = th.land; ctx.fill(); }
         const baseA = ctx.globalAlpha;
         if (soft) ctx.globalAlpha = baseA * FLAG_FADE;
         gs.forEach((g) => {
@@ -555,7 +555,7 @@
           const w = g.b[1][0] - g.b[0][0], h = g.b[1][1] - g.b[0][1];
           if (w <= 0 || h <= 0) return;
           ctx.save(); ctx.beginPath(); path({ type: 'MultiPolygon', coordinates: g.coords }); ctx.clip();
-          drawFlagImg(ctx, img, g, th);
+          drawFlagImg(ctx, img, g, ang);
           ctx.restore();
         });
         ctx.globalAlpha = baseA;
@@ -643,10 +643,14 @@
       '<button type="button" class="exp-btn primary" id="expDl">PNG olarak indir</button></footer></div>';
     document.body.appendChild(modal);
     canvas = modal.querySelector('#expCanvas');
-    modal.addEventListener('mousedown', (e) => { if (e.target === modal) close(); });
+    // dışarı tıklama: hem basma hem bırakma doğrudan arka planda olmalı (içeride başlayan sürükleme kapatmaz)
+    let downOnBackdrop = false;
+    modal.addEventListener('pointerdown', (e) => { downOnBackdrop = e.target === modal; });
+    modal.addEventListener('click', (e) => { if (e.target === modal && downOnBackdrop) close(); downOnBackdrop = false; });
     modal.querySelector('#expX').addEventListener('click', close);
     modal.querySelector('#expClose').addEventListener('click', close);
     modal.addEventListener('keydown', (e) => {
+      e.stopPropagation();   // pencere açıkken sitenin kısayolları (ör. Ctrl+Z geri al) çalışmasın
       if (e.key === 'Escape') { e.preventDefault(); close(); return; }
       if (e.key === 'Tab') {
         const f = [...modal.querySelectorAll('button, input, select, textarea')].filter((el) => !el.disabled && el.offsetParent !== null);
@@ -663,17 +667,28 @@
     const box = modal.querySelector('#expSettings');
     box.addEventListener('input', onCtl); box.addEventListener('change', onCtl);
     box.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-size], [data-font], [data-q], [data-theme]');
-      if (!b) return;
-      if (b.dataset.theme) st.theme = b.dataset.theme;
-      if (b.dataset.size) st.size = b.dataset.size;
-      if (b.dataset.font) st.font = b.dataset.font;
-      if (b.dataset.q) st.q = +b.dataset.q;
-      saveSettings(); fillSettings(); schedule();
+      // dikkat: closest() <html data-theme> öğesine kadar çıkabilir; yalnızca panelin içindeki düğmeler sayılır
+      const b = e.target.closest('button[data-size], button[data-font], button[data-q], button[data-theme]');
+      if (!b || !box.contains(b)) return;
+      e.preventDefault();
+      // seçili kart yerinde işaretlenir; panel yeniden kurulmaz (odak ve kaydırma bozulmaz)
+      const mark = (attr, val) => box.querySelectorAll('[data-' + attr + ']').forEach((x) => {
+        const on = x.dataset[attr] === String(val); x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on));
+      });
+      let rebuild = false;
+      if (b.dataset.theme) { st.theme = b.dataset.theme; mark('theme', st.theme); }
+      if (b.dataset.font) { st.font = b.dataset.font; mark('font', st.font); }
+      if (b.dataset.q) { st.q = +b.dataset.q; mark('q', st.q); }
+      if (b.dataset.size) { rebuild = (st.size === 'custom') !== (b.dataset.size === 'custom'); st.size = b.dataset.size; mark('size', st.size); }
+      saveSettings(); if (rebuild) fillSettings(); schedule();
     });
+    // Esc: pencere açıkken, odak nerede olursa olsun
+    escHandler = (e) => { if (e.key === 'Escape' && modal && !modal.hidden) { e.preventDefault(); close(); } };
   }
+  let escHandler = null;
   function onCtl(e) {
     const el = e.target, k = el.dataset.k;
+    if (k && e.type === 'input' && (el.type === 'checkbox' || el.tagName === 'SELECT')) return;   // change zaten gelir; çift tetiklenmesin
     if (k) {
       let v = el.type === 'checkbox' ? el.checked : el.value;
       if (k === 'cw' || k === 'ch') v = clamp(+v || 0, 0, 6000);
@@ -703,7 +718,12 @@
     const used = usedColors(), labels = legendLabels();
     const legRows = used.filter((c) => st.autoLegend || (labels[c] || '').trim()).map((c) =>
       '<label class="exp-leg"><i style="background:' + c + '"></i><input type="text" data-leg="' + c + '" value="' + String(labels[c] || '').replace(/"/g, '&quot;') + '" placeholder="' + A.colorName(c) + '" maxlength="40" aria-label="' + A.colorName(c) + ' rengi için etiket"></label>').join('');
-    modal.querySelector('#expSettings').innerHTML =
+    // panel baştan çizildiği için kaydırma konumu ve odak korunur (aksi halde her tıklamada en üste/aşağıya atlar)
+    const panel = modal.querySelector('#expSettings'), keepTop = panel.scrollTop, ae = document.activeElement;
+    const focusSel = ae && panel.contains(ae)
+      ? (ae.dataset.theme ? '[data-theme="' + ae.dataset.theme + '"]' : ae.dataset.size ? '[data-size="' + ae.dataset.size + '"]' : ae.dataset.font ? '[data-font="' + ae.dataset.font + '"]' : ae.dataset.q ? '[data-q="' + ae.dataset.q + '"]' : ae.dataset.k ? '[data-k="' + ae.dataset.k + '"]' : null)
+      : null;
+    panel.innerHTML =
       sec('Boyut', '<div class="exp-grid">' + sizes + '</div>' +
         (st.size === 'custom' ? '<div class="exp-row"><label>Genişlik <input type="number" data-k="cw" min="200" max="6000" value="' + st.cw + '"></label><label>Yükseklik <input type="number" data-k="ch" min="200" max="6000" value="' + st.ch + '"></label></div><small class="exp-hint">En fazla 6000 px.</small>' : '') +
         '<div class="exp-sub">Kalite (piksel yoğunluğu)</div><div class="exp-grid q">' + qs + '</div>') +
@@ -725,6 +745,9 @@
         (st.legend ? '<label class="exp-fld">Konum ' + sel('legendPos', [['bl', 'Sol alt'], ['br', 'Sağ alt'], ['tl', 'Sol üst'], ['tr', 'Sağ üst']]) + '</label>' + chk('autoLegend', 'Kullanılan renkleri otomatik ekle') +
           (legRows ? '<div class="exp-legs">' + legRows + '</div><small class="exp-hint">Etiket yazmazsan renk adı (ör. Mavi) kullanılır; otomatik ekleme kapalıysa etiketsiz renkler görünmez.</small>' : '<small class="exp-hint">Henüz boyanmış renk yok.</small>') : '')) +
       sec('Diğer', chk('watermark', 'Filigran (Harita Boyama)') + chk('date', 'Tarih etiketi'));
+    panel.scrollTop = keepTop;
+    const again = focusSel && panel.querySelector(focusSel);
+    if (again) again.focus({ preventScroll: true });
   }
 
   function open(opts) {
@@ -743,6 +766,8 @@
     fillSettings();
     modal.hidden = false;
     document.body.classList.add('exp-open');
+    document.addEventListener('keydown', escHandler);
+    window.addEventListener('hashchange', close);
     modal.querySelector('#expShare').hidden = !(navigator.canShare && navigator.share);
     modal.querySelector('#expCopy').hidden = !(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write);
     modal.querySelector('#expDl').focus();
@@ -750,9 +775,11 @@
   }
   function close() {
     if (!modal || modal.hidden) return;
-    token++;
+    token++; clearTimeout(timer);
     modal.hidden = true;
     document.body.classList.remove('exp-open');
+    document.removeEventListener('keydown', escHandler);
+    window.removeEventListener('hashchange', close);
     dataCache = null;
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
@@ -765,9 +792,14 @@
     const dm = dims();
     const key = src.mode + '|' + (src.slug || '') + '|' + st.flags + '|' + st.scope + '|' + st.cityBorders + '|' + dm.w + 'x' + dm.h + '|' + JSON.stringify(A.countries.map((c) => A.paintedOf(c.slug)));
     if (dataCache && dataKey === key) return dataCache;
-    dataCache = await prepare(); dataKey = key;
-    return dataCache;
+    if (!dataPending || dataPending.key !== key) {   // aynı anahtar için tek hazırlık; hızlı tıklamada yarış olmaz
+      const p = prepare().then((d) => { if (dataPending && dataPending.p === p) { dataCache = d; dataKey = key; dataPending = null; } return d; },
+        (err) => { if (dataPending && dataPending.p === p) dataPending = null; throw err; });
+      dataPending = { key, p };
+    }
+    return dataPending.p;
   }
+  let dataPending = null;
   async function runPreview() {
     const my = ++token, busy = modal.querySelector('#expBusy');
     busy.hidden = false;
@@ -804,13 +836,16 @@
     await render(c, data, w, h, o.sc, null);
     return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('blob'))), 'image/png'));
   }
+  let working = false;   // indir/paylaş/kopyala aynı anda yalnızca biri çalışır
   async function withBusy(btn, label, fn) {
-    const old = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<span class="spin"></span> ' + label;
+    if (working) return;
+    working = true;
+    const old = btn.textContent, others = [...modal.querySelectorAll('.exp-foot .exp-btn')].filter((x) => x !== btn && x.id !== 'expClose');
+    btn.disabled = true; others.forEach((x) => { x.disabled = true; }); btn.innerHTML = '<span class="spin"></span> ' + label;
     try { await fn(); } catch (e) {
       console.error(e);
       modal.querySelector('#expWarn').textContent = 'PNG oluşturulamadı. Boyutu ya da kaliteyi düşürüp tekrar dene.';
-    } finally { btn.disabled = false; btn.textContent = old; }
+    } finally { working = false; btn.disabled = false; others.forEach((x) => { x.disabled = false; }); btn.textContent = old; }
   }
   function download() {
     const btn = modal.querySelector('#expDl');

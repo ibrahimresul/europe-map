@@ -3,3 +3,11 @@ tools/node_modules/
 .env
 .env.*
 !.env.example
+
+# Gizli bilgiler / yerel dosyalar (asla commit edilmez)
+*.pem
+*.key
+*.p12
+serviceAccount*.json
+*-adminsdk-*.json
+.firebase/

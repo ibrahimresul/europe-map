@@ -1020,3 +1020,7 @@ body:not(.in-country) #euroMap.flags-on .cregions.fresh.hasflag path.region:not(
 .exp-theme:hover, .exp-theme:focus-visible { border-color: var(--accent); outline: none; }
 .exp-sw { position: relative; flex: none; width: 30px; height: 30px; border-radius: 8px; border: 2px solid; box-sizing: border-box; }
 .exp-sw i { position: absolute; right: 3px; bottom: 3px; width: 9px; height: 9px; border-radius: 50%; }
+
+/* dışa aktarma penceresi: dokunmatikte çift dokunma yakınlaştırması/gecikme olmasın */
+.exp-modal button, .exp-modal label, .exp-modal select { touch-action: manipulation; }
+.exp-card-btn:disabled, .exp-btn:disabled { opacity: .6; cursor: not-allowed; }
