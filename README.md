@@ -1,60 +1,110 @@
-# 🗺️ Türkiye Şehirlerini Boyama Oyunu
+# 🗺️ Harita Boyama – Avrupa
 
-Türkiye'nin 81 ilini gerçek coğrafi sınırlarıyla gösteren, tamamen tarayıcı üzerinde çalışan interaktif bir boyama oyunu. Kurulum ya da sunucu gerektirmez — dosyayı aç, boyamaya başla.
+Avrupa'daki 50 ülkeyi ve her ülkenin şehir/bölgelerini gerçek sınırlarıyla gösteren, tarayıcıda çalışan interaktif bir boyama oyunu. Avrupa haritasından bir ülke seç, şehirlerini istediğin renge boya, sonucu PNG olarak paylaş.
 
-<img width="1918" height="867" alt="Ekran görüntüsü 2026-07-18 233038" src="https://github.com/user-attachments/assets/d0f9f322-aae5-489b-85c1-75cb9f86884f" />
-<img width="1918" height="857" alt="Ekran görüntüsü 2026-07-18 233054" src="https://github.com/user-attachments/assets/56d86795-625a-4192-93e6-6bf503d587be" />
-<img width="1918" height="861" alt="Ekran görüntüsü 2026-07-18 233157" src="https://github.com/user-attachments/assets/7a78dc96-1938-44da-b90f-93e25216cf35" />
-<img width="2000" height="890" alt="turkiye-haritam" src="https://github.com/user-attachments/assets/d0a9bd3c-535b-41c5-8284-8ce82bd390cd" />
-
-
+<img width="1918" height="867" alt="Ekran görüntüsü" src="https://github.com/user-attachments/assets/d0f9f322-aae5-489b-85c1-75cb9f86884f" />
+<img width="1918" height="857" alt="Ekran görüntüsü" src="https://github.com/user-attachments/assets/56d86795-625a-4192-93e6-6bf503d587be" />
+<img width="1918" height="861" alt="Ekran görüntüsü" src="https://github.com/user-attachments/assets/7a78dc96-1938-44da-b90f-93e25216cf35" />
+<img width="2000" height="890" alt="Örnek PNG çıktısı" src="https://github.com/user-attachments/assets/d0a9bd3c-535b-41c5-8284-8ce82bd390cd" />
 
 ## ✨ Özellikler
 
-- **81 il, gerçek sınırlar** — Coğrafi GeoJSON verisinden üretilmiş SVG harita
-- **Serbest boyama** — 12 hazır renk + özel renk paleti (herhangi bir rengi seçebilirsin)
-- **Seçili il çerçevesi** — Tıkladığın il ince beyaz bir çerçeveyle belirginleşir
-- **Geri alma** — `Ctrl+Z` / `Cmd+Z` ile son işlemi geri al (boyama, silme, sıfırlama, rastgele boyama dahil)
-- **4 tema** — Gece Mavisi, Aydınlık, Okyanus, Gün Batımı
-- **Rastgele boyama** — Tüm haritayı tek tıkla renklendir
-- **PNG olarak indir** — Boyadığın haritanın ekran görüntüsünü tek tıkla kaydet
-- **Sıfırlama** — Haritayı baştan başlat
-- **Duyarlı tasarım** — Masaüstü ve mobilde çalışır
+- **50 ülke, gerçek sınırlar**: Natural Earth verisinden üretilmiş Avrupa haritası ve her ülkenin il/bölge haritası (Türkiye'de 81 il)
+- **Serbest boyama**: Hazır renkler ve özel renk seçici. Aynı renkle tekrar tıklayınca boya kalkar
+- **Avrupa genel görünümü**: Boyadığın ülkeler ana haritada da renkli görünür; istersen ülkeler bayraklarıyla gösterilir
+- **Yakınlaştırma ve kaydırma**: Fare tekerleği, dokunmatik hareketler ya da +/− düğmeleriyle
+- **Şehir isimleri ve sınırları**: İsimler bölgenin içine sığacak şekilde yerleşir; isimler ve şehir sınırları tek tıkla gizlenebilir
+- **Küçük başkentler büyütülür**: Paris gibi haritada kaybolan başkentler hafifçe büyütülerek gösterilir
+- **Rastgele boyama, seçili şehri silme, haritayı sıfırlama**
+- **4 tema**: Karanlık, Aydınlık, Okyanus, Gün Batımı
+- **PNG dışa aktarma**: Instagram Story, kare/dikey gönderi, yatay sunum gibi hazır boyutlar; başlık, alt yazı, renk açıklaması, arka plan ve sınır kalınlığı ayarları
+- **Google ile giriş**: Boyamaların Firebase (Firestore) ile hesabına kaydedilir ve cihazlar arasında eşitlenir. Giriş yapmadan da oynanır; boyamalar tarayıcıda saklanır
+- **Duyarlı tasarım**: Masaüstü ve mobilde çalışır
 
 ## 🚀 Kullanım
 
-Kurulum gerekmez, saf HTML/CSS/JS ile yazılmıştır.
+Kurulum ya da derleme gerekmez; saf HTML/CSS/JS ile yazılmıştır.
 
 ```bash
-git clone https://github.com/ibrahimresul/turkiye-map.git
-cd turkiye-map
-```
-
-Ardından `index.html` dosyasını herhangi bir tarayıcıda aç. İstersen basit bir yerel sunucu ile de çalıştırabilirsin:
-
-```bash
+git clone https://github.com/ibrahimresul/europe-map.git
+cd europe-map
 python3 -m http.server 8000
 # tarayıcıda http://localhost:8000 adresini aç
 ```
 
+`index.html` dosyasını doğrudan tarayıcıda açmak da çalışır, ancak Google ile giriş için sayfanın bir sunucu üzerinden (`http://localhost` ya da yayınlanmış adres) açılması gerekir.
+
+Türkiye haritasına doğrudan gitmek için: `index.html#/ulke/turkiye` (ya da `turkiye.html`).
+
 ## 🎮 Nasıl Oynanır
 
-1. Sağ panelden bir renk seç (hazır renklerden biri veya "Özel Renk" ile paletten istediğin rengi al)
-2. Haritada boyamak istediğin ile tıkla
-3. Yanlış yaptıysan `Ctrl+Z` ile geri al
+1. Avrupa haritasında boyamak istediğin ülkeye tıkla
+2. Bir renk seç
+3. Haritada boyamak istediğin şehre tıkla (aynı renkle tekrar tıklarsan boya kalkar)
 4. Beğendiğin bir temaya geç
-5. İşin bitince "Haritayı İndir" ile PNG olarak kaydet
+5. İşin bitince "Haritayı İndir (PNG)" ile kaydet
+
+## 🔥 Firebase ile yayınlama (isteğe bağlı)
+
+Giriş ve bulut kaydı Firebase kullanır. Kendi projenle çalıştırmak için:
+
+1. [Firebase konsolunda](https://console.firebase.google.com) bir proje oluştur; **Authentication → Google** ve **Firestore**'u etkinleştir
+2. `firebase-config.js` içindeki ayarları kendi projeninkilerle değiştir
+3. `.firebaserc` içindeki proje kimliğini güncelle
+4. Yayınla:
+
+```bash
+npm install -g firebase-tools
+firebase login
+firebase deploy   # hosting + firestore.rules
+```
+
+> Firebase web ayarları (`apiKey` vb.) gizli değildir; erişim `firestore.rules` ile sınırlandırılır. Her kullanıcı yalnızca kendi verisini okuyup yazabilir.
 
 ## 📁 Proje Yapısı
 
 ```
-turkiye-illeri-boyama-oyunu/
-├── index.html    # Sayfa yapısı ve SVG harita
-├── style.css     # Görünüm, temalar, animasyonlar
-├── script.js     # Oyun mantığı
-└── README.md
+europe-map/
+├── index.html            # Sayfa yapısı
+├── style.css             # Görünüm ve temalar
+├── europe.js             # Avrupa ve ülke haritaları, boyama mantığı
+├── export.js             # PNG dışa aktarma penceresi
+├── cloud.js              # Google ile giriş ve Firestore eşitleme
+├── firebase-config.js    # Firebase proje ayarları
+├── firestore.rules       # Firestore güvenlik kuralları
+├── turkiye.html          # Türkiye haritasına yönlendirme
+├── data/                 # Üretilmiş harita verileri (TopoJSON)
+│   ├── europe.js, europe-regions.js, countries.js, merge-map.js
+│   └── c/<ülke>.js       # Her ülkenin bölge haritası
+├── flags/                # Ülke bayrakları (SVG)
+├── fonts/                # Dışa aktarmada kullanılan yazı tipleri
+├── vendor/               # d3, topojson-client, Firebase SDK
+└── tools/                # Harita verisini üreten Node.js betikleri
+```
+
+## 🧰 Harita verisini yeniden üretmek
+
+`data/` klasörü hazır gelir; yalnızca sınırları değiştirmek istersen gerekir.
+
+1. [Natural Earth](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/) üzerinden `ne_10m_admin_0_countries` ve `ne_10m_admin_1_states_provinces` verilerini GeoJSON olarak `tools/raw/` klasörüne koy
+2. Çalıştır:
+
+```bash
+cd tools
+npm install
+npm run build-data
+node merge-small-regions.cjs   # küçük bölgeleri komşularıyla birleştirir
 ```
 
 ## 🛠️ Teknolojiler
 
-- Vanilla HTML5, CSS3 (CSS değişkenleri ile tema sistemi), JavaScript (ES6+)
+- HTML5, CSS3 (CSS değişkenleriyle tema sistemi), JavaScript (ES6+)
+- [D3.js](https://d3js.org) ve [TopoJSON](https://github.com/topojson/topojson): harita çizimi
+- [Firebase](https://firebase.google.com): Google ile giriş, Firestore, Hosting
+- [mapshaper](https://github.com/mbloch/mapshaper): veri hazırlama
+
+## 📄 Lisanslar ve kaynaklar
+
+- Harita verisi: [Natural Earth](https://www.naturalearthdata.com) (kamu malı)
+- Bayraklar: [flag-icons](https://github.com/lipis/flag-icons) (MIT), bkz. `flags/LICENSE.txt`
+- Yazı tipleri: Inter, Playfair Display, Caveat, Anton (SIL Open Font License 1.1), bkz. `fonts/LICENSE.txt`
