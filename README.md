@@ -2,7 +2,8 @@
 
 Avrupa'daki 50 ülkeyi ve her ülkenin şehir/bölgelerini gerçek sınırlarıyla gösteren, tarayıcıda çalışan interaktif bir boyama oyunu. Avrupa haritasından bir ülke seç, şehirlerini istediğin renge boya, sonucu PNG olarak paylaş.
 
-<img width="1530" height="761" alt="image" src="https://github.com/user-attachments/assets/6f043409-f26e-4658-a1e6-e854f1c6ce60" />
+
+<img width="1534" height="682" alt="image" src="https://github.com/user-attachments/assets/ec6578dc-91b3-4228-b994-5b60505dfc1e" />
 <img width="1510" height="677" alt="image" src="https://github.com/user-attachments/assets/d8f3e6b6-8aa5-40d9-9f7c-d8fa7410a012" />
 <img width="1534" height="694" alt="image" src="https://github.com/user-attachments/assets/dcb159c9-dff5-4424-b3d9-5a6550d7810e" />
 <img width="1534" height="690" alt="image" src="https://github.com/user-attachments/assets/dca36b06-6147-4199-954a-4774396facd5" />
