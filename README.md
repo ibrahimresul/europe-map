@@ -2,10 +2,11 @@
 
 Avrupa'daki 50 ülkeyi ve her ülkenin şehir/bölgelerini gerçek sınırlarıyla gösteren, tarayıcıda çalışan interaktif bir boyama oyunu. Avrupa haritasından bir ülke seç, şehirlerini istediğin renge boya, sonucu PNG olarak paylaş.
 
-<img width="1918" height="867" alt="Ekran görüntüsü" src="https://github.com/user-attachments/assets/d0f9f322-aae5-489b-85c1-75cb9f86884f" />
-<img width="1918" height="857" alt="Ekran görüntüsü" src="https://github.com/user-attachments/assets/56d86795-625a-4192-93e6-6bf503d587be" />
-<img width="1918" height="861" alt="Ekran görüntüsü" src="https://github.com/user-attachments/assets/7a78dc96-1938-44da-b90f-93e25216cf35" />
-<img width="2000" height="890" alt="Örnek PNG çıktısı" src="https://github.com/user-attachments/assets/d0a9bd3c-535b-41c5-8284-8ce82bd390cd" />
+<img width="1530" height="761" alt="image" src="https://github.com/user-attachments/assets/6f043409-f26e-4658-a1e6-e854f1c6ce60" />
+<img width="1510" height="677" alt="image" src="https://github.com/user-attachments/assets/d8f3e6b6-8aa5-40d9-9f7c-d8fa7410a012" />
+<img width="1534" height="694" alt="image" src="https://github.com/user-attachments/assets/dcb159c9-dff5-4424-b3d9-5a6550d7810e" />
+<img width="1534" height="690" alt="image" src="https://github.com/user-attachments/assets/dca36b06-6147-4199-954a-4774396facd5" />
+
 
 ## ✨ Özellikler
 
@@ -105,6 +106,6 @@ node merge-small-regions.cjs   # küçük bölgeleri komşularıyla birleştirir
 
 ## 📄 Lisanslar ve kaynaklar
 
-- Harita verisi: [Natural Earth](https://www.naturalearthdata.com) (kamu malı)
+- Harita verisi: [Natural Earth](https://www.naturalearthdata.com)
 - Bayraklar: [flag-icons](https://github.com/lipis/flag-icons) (MIT), bkz. `flags/LICENSE.txt`
 - Yazı tipleri: Inter, Playfair Display, Caveat, Anton (SIL Open Font License 1.1), bkz. `fonts/LICENSE.txt`
